@@ -14,7 +14,7 @@ def find_zero_crossings_no_zeros(signs: np.ndarray):
 
 def propagate_signs_over_zeros(signs: np.ndarray):
     """Propagate non-zero signs over zero positions in the sign array."""
-    
+    #
     signs_no_zeros = signs.copy()
     mask = signs_no_zeros != 0
     idx = np.where(mask, np.arange(len(signs_no_zeros)), 0)
@@ -86,8 +86,11 @@ except AssertionError:
 
 def plot_signal(i: np.ndarray, s: np.ndarray, color: str = "blue"):
     """Plot the signal as function of time/index with grid and zero line"""
+    #drawing a straight horizontal line across the entire width of the plot(y=0 - in the middle))
     plt.axhline(y=0, color="gray", linestyle="-") # before to be under the signal
+    # Map the index array to the x-axis and the signal array to the y-axis.
     plt.plot(i, s, ".-", markersize=5, linewidth=0.25, color=color, label="signal")
+    #lablelling 
     plt.ylabel("signal")
     plt.xlabel("index")
 
