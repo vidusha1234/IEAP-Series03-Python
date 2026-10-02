@@ -91,19 +91,26 @@ def find_zero_crossings(s: np.ndarray):
     
 
     """
-    #convert s into a np array
+    # Accept lists/tuples too: asarray converts them (no copy if already an array)
     s = np.asarray(s)
-    #checks if the dimensions are correct - needs to be 2D
+    #checks if the dimensions are correct - needs to be 1D
     if s.ndim != 1:
         raise ValueError("Input must be a 1D array")
-    # Converting Raw Numbers to Signs
+    
+    # --- Step 1: reduce the signal to its signs ---
+    # np.sign gives -1, 0 or +1 for each sample; only the sign matters for crossings, not the amplitude. astype(int) makes the output integer (np.sign on floats returns floats).
     signs = np.sign(s).astype(int)
-    #checks for zeros and if there are - it fixes
+    
+    # --- Step 2: remove zeros ---
+    # A sample that is exactly 0 has no sign, so it cannot be classified as positive or negative. Replace zeros with the neighbouring sign so that a crossing is only reported when the sign really changes. i_zeros holds the indices of zero samples; only its size is used here.
     i_zeros = np.where(signs == 0)[0]
     if i_zeros.size > 0:
         signs_no_zeros = propagate_signs_over_zeros(signs)
     else:
+        # Nothing to fix, reuse the array as is
         signs_no_zeros = signs
+
+    # --- Step 3: locate the sign changes ---    
     return find_zero_crossings_no_zeros(signs_no_zeros)
 
 def test_find_zero_crossings():
@@ -310,6 +317,81 @@ def display_signal_and_crossings(i: np.ndarray, s: np.ndarray):
 
 # Example usage (commented out so it doesn't crash on paste since index/signal are not yet defined)
 # display_signal_and_crossings(index, signal)
+
+def test_find_zero_crossings_extra():
+    """Additional unit tests for find_zero_crossings.
+
+    Covers degenerate inputs (empty, single sample, all zeros, no sign
+    change), zeros in different positions, float and non-array inputs,
+    invalid input, and side effects. Takes no inputs and returns nothing;
+    raises AssertionError if any check fails.
+    """
+    def check(s, expected_pos, expected_neg):
+        """Run find_zero_crossings on s and compare with expected indices."""
+        i_pos, i_neg = find_zero_crossings(s)
+        assert np.array_equal(i_pos, np.array(expected_pos)), f"pos failed for {s}"
+        assert np.array_equal(i_neg, np.array(expected_neg)), f"neg failed for {s}"
+
+    # --- Degenerate inputs: nothing can cross ---
+    check(np.array([]), [], [])                 # empty signal
+    check(np.array([5]), [], [])                # single non-zero sample
+    check(np.array([0]), [], [])                # single zero sample
+    check(np.array([0, 0, 0, 0]), [], [])       # all zeros
+    check(np.array([1, 2, 3]), [], [])          # always positive
+    check(np.array([-1, -2, -3]), [], [])       # always negative
+
+    # --- Zeros between samples of the SAME sign: no crossing ---
+    check(np.array([1, 0, 1]), [], [])
+    check(np.array([-1, 0, 0, -1]), [], [])
+
+    # --- Zeros between samples of OPPOSITE signs: one crossing ---
+    check(np.array([1, 0, -1]), [], [1])        # positive -> negative
+    check(np.array([-3, 0, 0, 0, 4]), [3], [])  # negative -> positive
+
+    # --- Leading and trailing zeros ---
+    check(np.array([0, 0, -1, 1]), [2], [])     # leading zeros, then a crossing
+    check(np.array([-1, 1, 0, 0]), [0], [])     # crossing, then trailing zeros
+    check(np.array([0, 1, -1]), [], [1])        # one leading zero
+    check(np.array([0, -1, 1]), [1], [])
+
+    # --- Several crossings mixed with zeros ---
+    check(np.array([1, -1, 0, 0, 1, 0, -1]), [3], [0, 5])
+
+    # --- Other numeric types and input formats ---
+    check(np.array([-0.5, 0.5, -1.5]), [0], [1])   # floats
+    check(np.array([1e-300, -1e-300]), [], [0])    # tiny values still have a sign
+    check(np.array([-0.0, 1.0, -1.0]), [], [1])    # -0.0 counts as zero
+    check([-1, 1, -1], [0], [1])                   # list instead of array
+    check((1, -1), [], [0])                        # tuple instead of array
+
+    # --- Invalid input must raise ValueError ---
+    for bad in (np.array([[1, -1], [1, -1]]), np.array(3)):   # 2D and 0D
+        try:
+            find_zero_crossings(bad)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("ValueError expected for non-1D input")
+
+    # --- The input must not be modified ---
+    s = np.array([-1, 0, 0, 1, 0, -1])
+    s_copy = s.copy()
+    find_zero_crossings(s)
+    assert np.array_equal(s, s_copy), "input array was modified"
+
+    # --- Returned indices are integer arrays (even when empty) ---
+    i_pos, i_neg = find_zero_crossings(np.array([]))
+    assert np.issubdtype(i_pos.dtype, np.integer)
+    assert np.issubdtype(i_neg.dtype, np.integer)
+
+
+# Testing the extra cases
+test_find_zero_crossings_extra()
+print("All extra tests passed.")
+
+
+#section 3
+
 
 def find_local_extrema(s: np.ndarray):
     """Find the local maxima and minima of a 1D signal.
