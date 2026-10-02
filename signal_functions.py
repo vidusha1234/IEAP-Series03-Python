@@ -107,7 +107,15 @@ def find_zero_crossings(s: np.ndarray):
     return find_zero_crossings_no_zeros(signs_no_zeros)
 
 def test_find_zero_crossings():
-    """Unit tests for find_zero_crossings function."""
+    """Unit tests for find_zero_crossings function.
+    
+    Checks the returned positive/negative crossing indices on signals with
+    alternating signs, zeros between signs, leading and trailing zeros, and
+    signals with no real crossings. Takes no inputs and returns nothing;
+    raises AssertionError if any check fails.
+    
+    
+    """
     s = np.array([-1, 1, -1, 1, -1])
     # expected + - + - +
     i_pos, i_neg = find_zero_crossings(s)
@@ -152,7 +160,26 @@ except AssertionError:
     raise # propagate the error
 
 def plot_signal(i: np.ndarray, s: np.ndarray, color: str = "blue"):
-    """Plot the signal as function of time/index with grid and zero line"""
+    """Plot the signal as function of time/index with grid and zero line
+    
+    Draws a gray horizontal line at y = 0 (behind the signal) and then the
+    signal as small dots joined by thin lines. Also sets the axis labels.
+    Does not create a new figure and does not call plt.show().
+ 
+    Parameters
+    ----------
+    i : np.ndarray
+        1D array of x-values (sample indices or time stamps).
+    s : np.ndarray
+        1D array of signal values, same length as `i`.
+    color : str, optional
+        Matplotlib color of the signal line (default "blue").
+ 
+    Returns
+    -------
+    None
+    
+    """
     #drawing a straight horizontal line across the entire width of the plot(y=0 - in the middle))
     plt.axhline(y=0, color="gray", linestyle="-") # before to be under the signal
     # Map the index array to the x-axis and the signal array to the y-axis.
@@ -162,27 +189,116 @@ def plot_signal(i: np.ndarray, s: np.ndarray, color: str = "blue"):
     plt.xlabel("index")
 
 def plot_remarkable_points(t: np.ndarray, s: np.ndarray, format: str, label: str):
-    """Plot remarkable points on a signal with format and label"""
+    """Plot remarkable points on a signal with format and label
+    
+    Generic helper used to mark points of interest, such as zero crossings.
+ 
+    Parameters
+    ----------
+    t : np.ndarray
+        x-values (indices or times) of the points to mark.
+    s : np.ndarray
+        y-values (signal values) of the points, same length as `t`.
+    format : str
+        Matplotlib format string giving marker and color (e.g. "^r" for
+        red up-triangles).
+    label : str
+        Legend label for these points.
+ 
+    Returns
+    -------
+    None
+    
+    """
     plt.plot(t, s, format, markersize=10, label=label)
 
 def plot_positive_zero_crossings(i: np.ndarray, s: np.ndarray):
-    """Plot positive zero crossings on a signal"""
+    """Plot positive zero crossings on a signal
+    
+    Mark the positive zero crossings of a signal on the current figure.
+ 
+    Positive crossings (negative -> positive) are found with
+    `find_zero_crossings` and drawn as red up-triangles at the sample just
+    before the sign change.
+ 
+    Parameters
+    ----------
+    i : np.ndarray
+        1D array of x-values (indices or times) of the signal.
+    s : np.ndarray
+        1D array of signal values, same length as `i`.
+ 
+    Returns
+    -------
+    None
+    
+    """
     #send the signal array to the function find_zero_crossings and returns to i_pos and 
     i_pos, _ = find_zero_crossings(s)
     plot_remarkable_points(i[i_pos], s[i_pos], "^r", "positive zero crossings")
 
 def plot_negative_zero_crossings(i: np.ndarray, s: np.ndarray):
-    """Plot negative zero crossings on a signal"""
+    """Plot negative zero crossings on a signal
+    
+    Negative crossings (positive -> negative) are found with
+    `find_zero_crossings` and drawn as yellow down-triangles at the sample
+    just before the sign change.
+ 
+    Parameters
+    ----------
+    i : np.ndarray
+        1D array of x-values (indices or times) of the signal.
+    s : np.ndarray
+        1D array of signal values, same length as `i`.
+ 
+    Returns
+    -------
+    None
+    
+    """
     _, i_neg = find_zero_crossings(s)
     plot_remarkable_points(i[i_neg], s[i_neg], "vy", "negative zero crossings")
 
 def plot_zero_crossings(i: np.ndarray, s: np.ndarray):
-    """Plot all zero crossings on a signal"""
+    """Plot all zero crossings on a signal
+    
+    Convenience wrapper that calls `plot_positive_zero_crossings` and
+    `plot_negative_zero_crossings`. The signal itself is not drawn.
+ 
+    Parameters
+    ----------
+    i : np.ndarray
+        1D array of x-values (indices or times) of the signal.
+    s : np.ndarray
+        1D array of signal values, same length as `i`.
+ 
+    Returns
+    -------
+    None
+    
+    """
     plot_positive_zero_crossings(i, s)
     plot_negative_zero_crossings(i, s)
 
 def display_signal_and_crossings(i: np.ndarray, s: np.ndarray):
-    """Plot signal and zero crossings with legend outside the plot and grid"""
+    """Plot signal and zero crossings with legend outside the plot and grid
+    
+    Opens a new figure, plots the signal, marks positive and negative zero
+    crossings, adds a legend placed outside the axes (upper right) and a
+    grid, then displays the figure.
+ 
+    Parameters
+    ----------
+    i : np.ndarray
+        1D array of x-values (indices or times) of the signal.
+    s : np.ndarray
+        1D array of signal values, same length as `i`.
+ 
+    Returns
+    -------
+    None
+    
+    """
     plt.figure()
     plot_signal(i, s)
     plot_positive_zero_crossings(i, s)
