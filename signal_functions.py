@@ -28,10 +28,14 @@ def propagate_signs_over_zeros(signs: np.ndarray):
 
 def find_zero_crossings(s: np.ndarray):
     """Find zero crossings in a 1D signal array."""
+    #convert s into a np array
     s = np.asarray(s)
+    #checks if the dimensions are correct - needs to be 2D
     if s.ndim != 1:
         raise ValueError("Input must be a 1D array")
+    # Converting Raw Numbers to Signs
     signs = np.sign(s).astype(int)
+    #checks for zeros and if there are - it fixes
     i_zeros = np.where(signs == 0)[0]
     if i_zeros.size > 0:
         signs_no_zeros = propagate_signs_over_zeros(signs)
@@ -90,7 +94,7 @@ def plot_signal(i: np.ndarray, s: np.ndarray, color: str = "blue"):
     plt.axhline(y=0, color="gray", linestyle="-") # before to be under the signal
     # Map the index array to the x-axis and the signal array to the y-axis.
     plt.plot(i, s, ".-", markersize=5, linewidth=0.25, color=color, label="signal")
-    #lablelling 
+    #lablelling signal and index
     plt.ylabel("signal")
     plt.xlabel("index")
 
@@ -100,6 +104,7 @@ def plot_remarkable_points(t: np.ndarray, s: np.ndarray, format: str, label: str
 
 def plot_positive_zero_crossings(i: np.ndarray, s: np.ndarray):
     """Plot positive zero crossings on a signal"""
+    #send the signal array to the function find_zero_crossings and returns to i_pos and 
     i_pos, _ = find_zero_crossings(s)
     plot_remarkable_points(i[i_pos], s[i_pos], "^r", "positive zero crossings")
 
