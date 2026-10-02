@@ -2,7 +2,26 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def find_zero_crossings_no_zeros(signs: np.ndarray):
-    """Find zero crossings in a sign array without zeros"""
+    """Find zero crossings in a sign array without zeros
+    
+    A crossing at index i means the sign changes between position i and
+    position i + 1 (i.e., i is the last sample BEFORE the change).
+ 
+    Parameters
+    ----------
+    signs : np.ndarray
+        1D array of signs containing only -1 and +1 (no zeros).
+ 
+    Returns
+    -------
+    i_cross_pos : np.ndarray
+        Indices i where the sign goes from negative to positive
+        (signs[i] = -1, signs[i + 1] = +1).
+    i_cross_neg : np.ndarray
+        Indices i where the sign goes from positive to negative
+        (signs[i] = +1, signs[i + 1] = -1).
+    
+    """
     #Compute adjacent differences
     diff = np.diff(signs)
     #Find positive differences (> 0)
@@ -13,7 +32,25 @@ def find_zero_crossings_no_zeros(signs: np.ndarray):
     return i_cross_pos, i_cross_neg
 
 def propagate_signs_over_zeros(signs: np.ndarray):
-    """Propagate non-zero signs over zero positions in the sign array."""
+    """Propagate non-zero signs over zero positions in the sign array.
+    
+    Each zero takes the value of the last non-zero sign before it
+    (forward fill). Leading zeros, which have no previous sign, take the
+    value of the first non-zero sign in the array. If the array contains
+    only zeros, it is returned unchanged (all zeros).
+ 
+    Parameters
+    ----------
+    signs : np.ndarray
+        1D array of signs with values in {-1, 0, +1}.
+ 
+    Returns
+    -------
+    np.ndarray
+        Copy of `signs` of the same length in which zeros have been
+        replaced by neighbouring non-zero signs. The input is not modified.
+    
+    """
     #
     signs_no_zeros = signs.copy()
     mask = signs_no_zeros != 0
@@ -27,7 +64,33 @@ def propagate_signs_over_zeros(signs: np.ndarray):
     return signs_no_zeros
 
 def find_zero_crossings(s: np.ndarray):
-    """Find zero crossings in a 1D signal array."""
+    """Find zero crossings in a 1D signal array.
+    
+    Samples equal to zero are not treated as crossings by themselves: they
+    inherit the sign of the previous non-zero sample (see
+    `propagate_signs_over_zeros`), so a crossing is only reported when the
+    signal actually changes sign. A crossing at index i means the sign
+    changes between sample i and sample i + 1.
+ 
+    Parameters
+    ----------
+    s : np.ndarray
+        1D array (or array-like) of signal values.
+ 
+    Returns
+    -------
+    i_pos : np.ndarray
+        Indices of positive crossings (negative -> positive).
+    i_neg : np.ndarray
+        Indices of negative crossings (positive -> negative).
+ 
+    Raises
+    ------
+    ValueError
+        If `s` is not 1-dimensional.
+    
+
+    """
     #convert s into a np array
     s = np.asarray(s)
     #checks if the dimensions are correct - needs to be 2D
