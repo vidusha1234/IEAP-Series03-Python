@@ -310,3 +310,108 @@ def display_signal_and_crossings(i: np.ndarray, s: np.ndarray):
 
 # Example usage (commented out so it doesn't crash on paste since index/signal are not yet defined)
 # display_signal_and_crossings(index, signal)
+
+def find_local_extrema(s: np.ndarray):
+    """Find the local maxima and minima of a 1D signal.
+
+    A local maximum is a sample where the signal stops rising and starts
+    falling; a local minimum is where it stops falling and starts rising.
+    The first and last samples are never reported, since they have only one
+    neighbour. For a flat top or bottom (equal consecutive values), the last
+    sample of the flat part is reported.
+
+    Parameters
+    ----------
+    s : np.ndarray
+        1D array (or array-like) of signal values.
+
+    Returns
+    -------
+    i_maxima : np.ndarray
+        Indices of the local maxima.
+    i_minima : np.ndarray
+        Indices of the local minima.
+
+    Raises
+    ------
+    ValueError
+        If `s` is not 1-dimensional.
+    """
+    s = np.asarray(s)
+    if s.ndim != 1:
+        raise ValueError("Input must be a 1D array")
+
+    # Slope between consecutive samples: ds[k] = s[k + 1] - s[k]
+    ds = np.diff(s)
+
+    # Zero crossings of the slope. An index k from find_zero_crossings means
+    # the slope changes sign between ds[k] and ds[k + 1], i.e. around sample
+    # s[k + 1], so the extremum is at k + 1.
+    #   slope + -> -  (negative crossing): signal peaks   -> local maximum
+    #   slope - -> +  (positive crossing): signal dips    -> local minimum
+    i_pos, i_neg = find_zero_crossings(ds)
+    i_maxima = i_neg + 1
+    i_minima = i_pos + 1
+    return i_maxima, i_minima
+
+
+def plot_local_maxima(i: np.ndarray, s: np.ndarray):
+    """Mark the local maxima of a signal as red stars on the current figure.
+
+    Parameters
+    ----------
+    i : np.ndarray
+        1D array of x-values (indices or times) of the signal.
+    s : np.ndarray
+        1D array of signal values, same length as `i`.
+
+    Returns
+    -------
+    None
+    """
+    i_maxima, _ = find_local_extrema(s)
+    plot_remarkable_points(i[i_maxima], s[i_maxima], "*r", "local maxima")
+
+
+def plot_local_minima(i: np.ndarray, s: np.ndarray):
+    """Mark the local minima of a signal as magenta stars on the current figure.
+
+    Parameters
+    ----------
+    i : np.ndarray
+        1D array of x-values (indices or times) of the signal.
+    s : np.ndarray
+        1D array of signal values, same length as `i`.
+
+    Returns
+    -------
+    None
+    """
+    _, i_minima = find_local_extrema(s)
+    plot_remarkable_points(i[i_minima], s[i_minima], "*m", "local minima")
+
+
+def display_signal_and_extrema(i: np.ndarray, s: np.ndarray):
+    """Create a new figure showing a signal with its local maxima and minima.
+
+    Plots the signal, marks local maxima and minima, adds a legend outside
+    the axes and a grid, then displays the figure.
+
+    Parameters
+    ----------
+    i : np.ndarray
+        1D array of x-values (indices or times) of the signal.
+    s : np.ndarray
+        1D array of signal values, same length as `i`.
+
+    Returns
+    -------
+    None
+    """
+    plt.figure()
+    plot_signal(i, s)
+    plot_local_maxima(i, s)
+    plot_local_minima(i, s)
+    plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
+    plt.grid(True)
+    plt.show()
