@@ -3,13 +3,18 @@ import matplotlib.pyplot as plt
 
 def find_zero_crossings_no_zeros(signs: np.ndarray):
     """Find zero crossings in a sign array without zeros"""
+    #Compute adjacent differences
     diff = np.diff(signs)
+    #Find positive differences (> 0)
     i_cross_pos = np.where(diff > 0)[0]
+    #Find negative differences (< 0)
     i_cross_neg = np.where(diff < 0)[0]
+    #returning i_cross positive and negative values
     return i_cross_pos, i_cross_neg
 
 def propagate_signs_over_zeros(signs: np.ndarray):
     """Propagate non-zero signs over zero positions in the sign array."""
+    
     signs_no_zeros = signs.copy()
     mask = signs_no_zeros != 0
     idx = np.where(mask, np.arange(len(signs_no_zeros)), 0)
